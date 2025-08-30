@@ -16,6 +16,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { API_BASE } from "../config";
 import TripImage from "../components/TripImage";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function TripScreen({ navigation, route }) {
   const { trip } = route.params;
@@ -30,7 +31,19 @@ export default function TripScreen({ navigation, route }) {
   const fetchTripDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/api/trip/${trip.id}`);
+
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found, please login again");
+      }
+
+      const response = await fetch(`${API_BASE}/api/trip/${trip.id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("Error fetching the trip");
       }
@@ -111,8 +124,18 @@ export default function TripScreen({ navigation, route }) {
         onPress: async () => {
           try {
             setLoading(true);
+
+            const token = await AsyncStorage.getItem("token");
+            if (!token) {
+              throw new Error("No token found, please login again");
+            }
+
             const response = await fetch(`${API_BASE}/api/trip/${trip.id}`, {
               method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             });
             if (response.status === 204) {
               navigation.navigate("Home");
@@ -170,10 +193,16 @@ export default function TripScreen({ navigation, route }) {
       type: imageAsset.type || "image/jpeg",
     });
 
+    const token = await AsyncStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found, please login again");
+    }
+
     const response = await fetch(`${API_BASE}/api/photo`, {
       method: "POST",
       headers: {
         "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });
@@ -194,12 +223,23 @@ export default function TripScreen({ navigation, route }) {
         onPress: async () => {
           try {
             setLoading(true);
+
+            const token = await AsyncStorage.getItem("token");
+            console.log(token)
+            if (!token) {
+              throw new Error("No token found, please login again");
+            }
+
             const response = await fetch(
               `${API_BASE}/api/photo?id=${photoId}`,
               {
                 method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
               }
             );
+            console.log(response.status)
             if (response.status === 204) {
               setSelectedImage(null);
               fetchTripDetails();
@@ -299,13 +339,32 @@ export default function TripScreen({ navigation, route }) {
               key={item.id}
               style={styles.experienceContainer}
               onPress={() =>
-                navigation.navigate("Experience", { experience: item })
+                navigation.navigate("Experience", {
+                  experience: item,
+                  tripId: trip.id,
+                  tripStart: tripD.dateFrom,
+                  tripEnd:tripD.dateTo
+                })
               }
             >
               <Text style={styles.experienceTitle}>{item.title}</Text>
               <Text style={styles.experienceDate}>{item.date}</Text>
             </TouchableOpacity>
           ))}
+
+          <TouchableOpacity
+            style={styles.addExperienceButton}
+            onPress={() =>
+              navigation.navigate("AddExperience", { tripId: trip.id, tripStart: tripD.dateFrom, tripEnd: tripD.dateTo })
+            }
+          >
+            <MaterialIcons
+              name="add-circle-outline"
+              size={24}
+              color="#2196f3"
+            />
+            <Text style={styles.addExperienceText}>Add Experience</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.sectionTitle}>Photos</Text>
@@ -620,5 +679,21 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  addExperienceButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#2196f3",
+  },
+  addExperienceText: {
+    marginLeft: 6,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2196f3",
   },
 });

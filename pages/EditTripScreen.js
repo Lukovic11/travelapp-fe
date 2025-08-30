@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { API_BASE } from "../config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditTripScreen({ route, navigation }) {
   const { tripId } = route.params;
@@ -33,7 +34,19 @@ export default function EditTripScreen({ route, navigation }) {
   const fetchTripDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/api/trip/${tripId}`);
+
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found, please login again");
+      }
+
+      const response = await fetch(`${API_BASE}/api/trip/${tripId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("There was an error while fetching the trip");
       }
@@ -84,10 +97,16 @@ export default function EditTripScreen({ route, navigation }) {
         location,
       };
 
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found, please login again");
+      }
+
       const response = await fetch(`${API_BASE}/api/trip`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updatedTrip),
       });

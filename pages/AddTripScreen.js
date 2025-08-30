@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { API_BASE } from "../config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AddTripScreen({ navigation }) {
   const [title, setTitle] = useState("");
@@ -57,16 +58,20 @@ export default function AddTripScreen({ navigation }) {
       location,
     };
 
+    const token = await AsyncStorage.getItem("token");
+    if (!token) {
+      throw new Error("No token found, please login again");
+    }
+
     try {
       const response = await fetch(`${API_BASE}/api/trip`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(tripToSave),
       });
-
-      console.log(response);
 
       if (!response.ok) {
         throw new Error("There was an error while saving the trip.");

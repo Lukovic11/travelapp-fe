@@ -10,13 +10,16 @@ import {
 export default function TripImage({ imageUrl, onPress, styles }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-
+  
+  
   const handleLoad = () => {
+    console.log("load"+imageUrl);
     setLoaded(true);
     setError(false);
   };
-
+  
   const handleError = (e) => {
+    console.log("error"+imageUrl)
     setLoaded(true);
     setError(true);
   };
@@ -33,7 +36,7 @@ export default function TripImage({ imageUrl, onPress, styles }) {
         {error ? (
           <View style={[styles.photo, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f0f0' }]}>
             <Text style={{ color: '#999', textAlign: 'center', fontSize: 12 }}>
-              Slika nije dostupna
+              Photo is not available
             </Text>
           </View>
         ) : (

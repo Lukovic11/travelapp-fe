@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert
 } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "../constants";
 import { API_BASE } from "../config";
@@ -19,7 +22,18 @@ export default function HomeScreen({ navigation }) {
   const fetchTrips = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/api/trip/user/2`);
+
+    const token = await AsyncStorage.getItem("token"); 
+    if (!token) {
+      throw new Error("No token found, please login again");
+    }
+
+    const response = await fetch(`${API_BASE}/api/trip/user`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
       if (!response.ok) {
         throw new Error("Error fetching the trip");
       }
@@ -52,6 +66,48 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.tripLocation}>{item.location}</Text>
     </TouchableOpacity>
   );
+
+  
+   const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("token");
+      navigation.replace(ROUTES.LOGIN);
+    } catch (err) {
+      console.error("Error during logout:", err);
+    }
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity
+          style={{ marginRight: 0}}
+          onPress={() =>
+            Alert.alert(
+              "Log out",
+              "Are you sure you want to log out?",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Log out",
+                  style: "destructive",
+                  onPress: handleLogout,
+                },
+              ],
+              { cancelable: true }
+            )
+          }
+        >
+          <Icon
+            name="exit-outline"
+            size={24}
+            color="#FF3B30"
+            style={{ transform: [{ scaleX: -1 }] }}
+          />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   if (loading) {
     return (
