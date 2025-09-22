@@ -25,8 +25,6 @@ export default function AddTripScreen({ navigation }) {
   const [showDateFromPicker, setShowDateFromPicker] = useState(false);
   const [showDateToPicker, setShowDateToPicker] = useState(false);
 
-  const validateDates = (from, to) => from <= to;
-
   const handleDone = async () => {
     if (!title.trim()) {
       Alert.alert("Error", "Trip title cannot be empty.", [{ text: "OK" }]);
@@ -77,7 +75,7 @@ export default function AddTripScreen({ navigation }) {
         throw new Error("There was an error while saving the trip.");
       }
 
-      const savedTrip = await response.json();
+      await response.json();
 
       navigation.goBack();
     } catch (error) {
@@ -87,6 +85,12 @@ export default function AddTripScreen({ navigation }) {
         [{ text: "OK" }]
       );
     }
+  };
+
+  const validateDates = (from, to) => from <= to;
+
+  const formatDate = (date) => {
+    return date.toISOString().split("T")[0];
   };
 
   const onChangeDateFrom = (event, selectedDate) => {
@@ -99,7 +103,7 @@ export default function AddTripScreen({ navigation }) {
           ]);
           return;
         }
-        setDateFrom(selectedDate);
+        setDateFrom(selectedDate || date);
       }
     } else {
       if (selectedDate) setDateFromTemp(selectedDate);
@@ -149,10 +153,6 @@ export default function AddTripScreen({ navigation }) {
     }
     setDateTo(dateToTemp);
     setShowDateToPicker(false);
-  };
-
-  const formatDate = (date) => {
-    return date.toISOString().split("T")[0];
   };
 
   return (

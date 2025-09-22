@@ -13,13 +13,11 @@ export default function TripImage({ imageUrl, onPress, styles }) {
   
   
   const handleLoad = () => {
-    console.log("load"+imageUrl);
     setLoaded(true);
     setError(false);
   };
   
   const handleError = (e) => {
-    console.log("error"+imageUrl)
     setLoaded(true);
     setError(true);
   };

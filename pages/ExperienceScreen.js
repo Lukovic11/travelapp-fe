@@ -314,7 +314,7 @@ export default function ExperienceScreen({ navigation, route }) {
 
       <ScrollView>
         <Text style={styles.title}>{exp.title || "Untitled"}</Text>
-        <Text style={styles.description}>{exp.description || ""}</Text>
+        {exp.description && <Text style={styles.description}>{exp.description || ""}</Text>}
         <Text style={styles.date}>{exp.date || ""}</Text>
 
         <Text style={styles.sectionTitle}>Photos</Text>

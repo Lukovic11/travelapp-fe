@@ -6,9 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
+  Alert,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "../constants";
@@ -23,19 +23,19 @@ export default function HomeScreen({ navigation }) {
     try {
       setLoading(true);
 
-    const token = await AsyncStorage.getItem("token"); 
-    if (!token) {
-      throw new Error("No token found, please login again");
-    }
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found, please login again");
+      }
 
-    const response = await fetch(`${API_BASE}/api/trip/user`, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    });
+      const response = await fetch(`${API_BASE}/api/trip/user`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
-        throw new Error("Error fetching the trip");
+        throw new Error("Error fetching the trips");
       }
       const data = await response.json();
       setTrips(data);
@@ -54,34 +54,28 @@ export default function HomeScreen({ navigation }) {
 
   const renderTrip = ({ item }) => (
     <TouchableOpacity
-      style={styles.tripContainer}
+      style={styles.tripCard}
       onPress={() => navigation.navigate(ROUTES.TRIPS, { trip: item })}
     >
-      <Text style={styles.tripName}>
-        {item.id} {item.title}
-      </Text>
-      <Text style={styles.tripDates}>
-        {item.dateFrom} - {item.dateTo}
-      </Text>
-      <Text style={styles.tripLocation}>{item.location}</Text>
+      <Text style={styles.tripTitle}>{item.title}</Text>
+      <View style={styles.tripRow}>
+        <Ionicons name="calendar-outline" size={16} color="#555" />
+        <Text style={styles.tripText}>
+          {item.dateFrom} - {item.dateTo}
+        </Text>
+      </View>
+      <View style={styles.tripRow}>
+        <Ionicons name="location-outline" size={16} color="#555" />
+        <Text style={styles.tripText}>{item.location}</Text>
+      </View>
     </TouchableOpacity>
   );
-
-  
-   const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      navigation.replace(ROUTES.LOGIN);
-    } catch (err) {
-      console.error("Error during logout:", err);
-    }
-  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
         <TouchableOpacity
-          style={{ marginRight: 0}}
+          style={{ marginRight: 0 }}
           onPress={() =>
             Alert.alert(
               "Log out",
@@ -98,7 +92,7 @@ export default function HomeScreen({ navigation }) {
             )
           }
         >
-          <Icon
+          <Ionicons
             name="exit-outline"
             size={24}
             color="#FF3B30"
@@ -109,9 +103,18 @@ export default function HomeScreen({ navigation }) {
     });
   }, [navigation]);
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("token");
+      navigation.replace(ROUTES.LOGIN);
+    } catch (err) {
+      console.error("Error during logout:", err);
+    }
+  };
+
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -119,54 +122,83 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My trips</Text>
-      <FlatList
-        data={trips}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderTrip}
-      />
+      <Text style={styles.header}>🌍 My Trips</Text>
+
+      {trips.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="airplane-outline" size={64} color="#ccc" />
+          <Text style={styles.emptyText}>
+            No trips yet. Start your first adventure!
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={trips}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderTrip}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
+      )}
 
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate(ROUTES.ADD_TRIP)}
       >
-        <MaterialIcons name="flight" size={28} color="#fff" />
+        <MaterialIcons name="flight" size={32} color="#fff" />
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
-  title: { fontSize: 24, marginBottom: 16 },
-  tripContainer: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+  container: { flex: 1, padding: 16, backgroundColor: "#f9f9f9" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#333",
   },
-  tripName: { fontSize: 18, fontWeight: "bold" },
-  tripDates: { fontSize: 14, color: "#555" },
-  tripLocation: { fontSize: 14, color: "#777" },
+  tripCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  tripTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 6 },
+  tripRow: { flexDirection: "row", alignItems: "center", marginTop: 2 },
+  tripText: { fontSize: 14, color: "#555", marginLeft: 6 },
   fab: {
     position: "absolute",
     right: 20,
     bottom: 20,
-    backgroundColor: "#9b9fa5ff",
+    backgroundColor: "#007AFF",
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
+    elevation: 6,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 4,
   },
-  fabText: {
-    color: "#fff",
-    fontSize: 30,
-    lineHeight: 32,
-    fontWeight: "bold",
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 80,
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
   },
 });

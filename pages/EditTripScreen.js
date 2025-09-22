@@ -78,6 +78,18 @@ export default function EditTripScreen({ route, navigation }) {
   }, [tripId]);
 
   const handleSave = async () => {
+        if (!title.trim()) {
+      Alert.alert("Error", "Trip title cannot be empty.", [{ text: "OK" }]);
+      return;
+    }
+    if (!location.trim()) {
+      Alert.alert("Error", "Location cannot be empty.", [{ text: "OK" }]);
+      return;
+    }
+    if (!dateFrom || !dateTo) {
+      Alert.alert("Error", "Dates must have valid values.", [{ text: "OK" }]);
+      return;
+    }
     if (!validateDates(dateFrom, dateTo)) {
       Alert.alert(
         "Error",

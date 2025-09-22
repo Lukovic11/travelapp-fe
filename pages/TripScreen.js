@@ -225,7 +225,6 @@ export default function TripScreen({ navigation, route }) {
             setLoading(true);
 
             const token = await AsyncStorage.getItem("token");
-            console.log(token)
             if (!token) {
               throw new Error("No token found, please login again");
             }
@@ -239,7 +238,6 @@ export default function TripScreen({ navigation, route }) {
                 },
               }
             );
-            console.log(response.status)
             if (response.status === 204) {
               setSelectedImage(null);
               fetchTripDetails();
@@ -326,7 +324,9 @@ export default function TripScreen({ navigation, route }) {
       </Modal>
       <ScrollView>
         <Text style={styles.title}>{tripD.title || "Untitled"}</Text>
-        <Text style={styles.description}>{tripD.description || ""}</Text>
+        {tripD.description && (
+          <Text style={styles.description}>{tripD.description || ""}</Text>
+        )}
         <Text style={styles.dates}>
           {tripD.dateFrom || ""} - {tripD.dateTo || ""}
         </Text>
@@ -343,7 +343,7 @@ export default function TripScreen({ navigation, route }) {
                   experience: item,
                   tripId: trip.id,
                   tripStart: tripD.dateFrom,
-                  tripEnd:tripD.dateTo
+                  tripEnd: tripD.dateTo,
                 })
               }
             >
@@ -355,7 +355,11 @@ export default function TripScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.addExperienceButton}
             onPress={() =>
-              navigation.navigate("AddExperience", { tripId: trip.id, tripStart: tripD.dateFrom, tripEnd: tripD.dateTo })
+              navigation.navigate("AddExperience", {
+                tripId: trip.id,
+                tripStart: tripD.dateFrom,
+                tripEnd: tripD.dateTo,
+              })
             }
           >
             <MaterialIcons
